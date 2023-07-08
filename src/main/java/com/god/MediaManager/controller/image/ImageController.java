@@ -3,6 +3,7 @@ package com.god.MediaManager.controller.image;
 import com.god.MediaManager.DTO.ImageResponse;
 import com.god.MediaManager.model.auth.User;
 import com.god.MediaManager.model.media.Image;
+import com.god.MediaManager.model.media.UserLikedImage;
 import com.god.MediaManager.service.AuthService;
 import com.god.MediaManager.service.ImageService;
 import lombok.AllArgsConstructor;
@@ -68,7 +69,7 @@ public class ImageController {
     public ResponseEntity likeImage(@PathVariable Long imageId) {
         try{
             User crrUser = authService.getCurrentUser();
-            imageService.likeImage(crrUser.getId(),imageId);
+            imageService.likeImage(crrUser,imageId);
             return ResponseEntity.ok("Like image success");
         }
         catch (Exception e){
@@ -78,7 +79,7 @@ public class ImageController {
 
     @GetMapping("/user/liked/{userId}")
     public ResponseEntity<?> getUserLikedImages(@PathVariable Long userId) {
-        List<Image> likedImages = imageService.getLikedImagesByUser(userId);
+        List<Image> likedImages = imageService.getListImagesLikedByUser(userId);
         List<ImageResponse> lisImage = likedImages.stream().map(
                 x->ImageResponse.fromImage(x)).toList();
 

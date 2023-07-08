@@ -11,7 +11,8 @@ import java.util.List;
 
 @Repository
 public interface UserLikedImageRepository extends JpaRepository<UserLikedImage, Long> {
-    List<Image> findByUserId(Long userId);
+    List<UserLikedImage> findByUserId(Long userId);
 
     void deleteAllByImageId(Long id);
+    UserLikedImage findUserLikedImageByUserIdAndImageId(long userId,long imageId);
 }

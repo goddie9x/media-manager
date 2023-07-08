@@ -2,6 +2,7 @@ package com.god.MediaManager.service;
 
 import com.god.MediaManager.model.auth.User;
 import com.god.MediaManager.model.media.Image;
+import com.god.MediaManager.model.media.UserLikedImage;
 import com.god.MediaManager.repository.auth.UserRepository;
 import com.god.MediaManager.repository.media.ImageRepository;
 import com.god.MediaManager.repository.media.UserLikedImageRepository;
@@ -66,15 +67,32 @@ public class ImageService {
         return imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found"));
     }
-    public void likeImage(long imageId,long userId) {
+    public void likeImage(User user,long imageId) {
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found"));
-
-        image.setLikes(image.getLikes() + 1);
+        try{
+            UserLikedImage userLikedImage = new UserLikedImage();
+            userLikedImage.setImageId(imageId);
+            userLikedImage.setUserId(user.getId());
+            userLikedImageRepository.save(userLikedImage);
+            image.setLikes(image.getLikes() + 1);
+        }
+        catch (Exception e){
+            UserLikedImage userLikedImageExit = userLikedImageRepository
+                    .findUserLikedImageByUserIdAndImageId(user.getId(),imageId);
+            userLikedImageRepository.delete(userLikedImageExit);
+            image.setLikes(image.getLikes() - 1);
+        }
         imageRepository.save(image);
     }
-    public List<Image> getLikedImagesByUser(long userId) {
+    public List<UserLikedImage> getLikedImagesByUser(long userId) {
         return userLikedImageRepository.findByUserId(userId);
+    }
+    public List<Image> getListImagesLikedByUser(long userId) {
+        List<UserLikedImage> likedImageList = getLikedImagesByUser(userId);
+        List<Long> listImageId =
+                likedImageList.stream().map(x->x.getImageId()).toList();
+        return imageRepository.findAllById(listImageId);
     }
 
     public Resource retrieveImageFile(Image image) {

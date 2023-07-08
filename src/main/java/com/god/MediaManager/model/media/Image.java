@@ -20,8 +20,8 @@ public class Image {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = false)
     private String filename;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = false)
     private int likes;
 }
