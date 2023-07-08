@@ -7,12 +7,18 @@ import com.god.MediaManager.model.media.UserLikedImage;
 import com.god.MediaManager.service.AuthService;
 import com.god.MediaManager.service.ImageService;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,11 +29,28 @@ public class ImageController {
     private final ImageService imageService;
     private final AuthService authService;
 
+    @GetMapping("/{imageName}")
+    public ResponseEntity<?> getImage(@PathVariable String imageName) {
+        try {
+            String filePath = ImageService.IMAGE_PATH + imageName;
+            Path path = Paths.get(filePath);
+            String fileExtension = Files.probeContentType(path);
+            MediaType mediaType = MediaType.parseMediaType(fileExtension);
+            InputStreamResource resource = new InputStreamResource(Files.newInputStream(path));
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body("Cannot get image");
+        }
+    }
+
     @PostMapping("/upload")
-    public ResponseEntity uploadImage( @RequestParam("file") MultipartFile file) {
+    public ResponseEntity uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             User crrUser = authService.getCurrentUser();
-            Image image = imageService.uploadImage(crrUser.getId(),file);
+            Image image = imageService.uploadImage(crrUser.getId(), file);
             return ResponseEntity.ok(image);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Upload image failed");
@@ -38,18 +61,17 @@ public class ImageController {
     public ResponseEntity<?> getUserImages(@PathVariable Long userId) {
         List<Image> images = imageService.getImagesByUser(userId);
         List<ImageResponse> lisImage = images.stream().map(
-                x->ImageResponse.fromImage(x)).toList();
+                x -> ImageResponse.fromImage(x)).toList();
 
         return ResponseEntity.ok(lisImage);
     }
 
     @DeleteMapping("/{imageId}")
     public ResponseEntity deleteImage(@PathVariable Long imageId) {
-        try{
+        try {
             imageService.deleteImage(imageId);
             return ResponseEntity.ok("Delete image success");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(500).body("Delete image failed");
         }
     }
@@ -67,12 +89,11 @@ public class ImageController {
 
     @PostMapping("/like/{imageId}")
     public ResponseEntity likeImage(@PathVariable Long imageId) {
-        try{
+        try {
             User crrUser = authService.getCurrentUser();
-            imageService.likeImage(crrUser,imageId);
+            imageService.likeImage(crrUser, imageId);
             return ResponseEntity.ok("Like image success");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(500).body("Like image failed");
         }
     }
@@ -81,7 +102,7 @@ public class ImageController {
     public ResponseEntity<?> getUserLikedImages(@PathVariable Long userId) {
         List<Image> likedImages = imageService.getListImagesLikedByUser(userId);
         List<ImageResponse> lisImage = likedImages.stream().map(
-                x->ImageResponse.fromImage(x)).toList();
+                x -> ImageResponse.fromImage(x)).toList();
 
         return ResponseEntity.ok(lisImage);
     }

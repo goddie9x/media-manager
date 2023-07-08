@@ -8,6 +8,7 @@ import com.god.MediaManager.repository.media.ImageRepository;
 import com.god.MediaManager.repository.media.UserLikedImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +29,7 @@ public class ImageService {
     private UserRepository userRepository;
     @Autowired
     private UserLikedImageRepository userLikedImageRepository;
-    private final String IMAGE_PATH = new File("./public/image/readme.txt").getAbsolutePath();
+    public static final String IMAGE_PATH = new File("./public/image/readme.txt").getAbsolutePath();
     public Image uploadImage(long userId, MultipartFile file) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -44,7 +45,6 @@ public class ImageService {
         imageRepository.save(image);
         return image;
     }
-
     public List<Image> getImagesByUser(long userId) {
         return imageRepository.findByUserId(userId);
     }
